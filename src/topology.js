@@ -233,6 +233,7 @@ Topology.prototype.createDefaultExchange = function() {
 }
 
 Topology.prototype.createExchange = function( options ) {
+  this.definitions.exchanges[ options.name ] = options;
 	return this.createPrimitive( Exchange, "exchange", options );
 };
 
@@ -308,11 +309,14 @@ Topology.prototype.onReconnect = function() {
 	}.bind( this ) );
 	return when.all( prerequisites )
 		.then( function() {
-			return this.configureBindings( this.definitions.bindings, true )
-				.then( function() {
-					log.info( "Topology rebuilt for connection '%s'", this.connection.name );
-					this.emit( "bindings-completed", this.definitions );
-				}.bind( this ) );
+      return this.configureExchanges( this.definitions.exchanges, true )
+        .then( function() {
+        return this.configureBindings( this.definitions.bindings, true )
+          .then( function() {
+            log.info( "Topology rebuilt for connection '%s'", this.connection.name );
+            this.emit( "bindings-completed", this.definitions );
+          }.bind( this ) );
+        }.bind( this ) );
 		}.bind( this ) );
 };
 
